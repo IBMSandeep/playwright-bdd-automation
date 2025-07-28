@@ -302,5 +302,27 @@ To enable Ctrl+Click navigation from feature files to step definitions:
 - GitHub Pages integration for Allure reports
 
 
+Screenshot:
+Passed Execution
+<img width="1899" height="974" alt="Pic1" src="https://github.com/user-attachments/assets/adca84db-19ba-4a9f-80e3-2ef9f16972ee" />
+
+
+<img width="1920" height="1066" alt="Pic2" src="https://github.com/user-attachments/assets/649a7f00-0e8f-4077-b882-821df779a896" />
+
+
+
+Failed Execution
+<img width="1912" height="989" alt="Pic1" src="https://github.com/user-attachments/assets/f9883973-fa11-496d-93ac-74679670ae49" />
+
+<img width="1916" height="1016" alt="Pic2" src="https://github.com/user-attachments/assets/f51dcfbd-d1de-4275-8a5b-eac1b7f57c02" />
+
+<img width="1916" height="977" alt="Pic3" src="https://github.com/user-attachments/assets/60e06744-e1e7-4421-87e7-359d36cb189f" />
+
+
+<img width="1918" height="986" alt="Pic4" src="https://github.com/user-attachments/assets/2d09fa32-5a87-481a-8e60-8f4c75e03f87" />
+
+
+
+
 ## Author
 Ralph Harris rendon
