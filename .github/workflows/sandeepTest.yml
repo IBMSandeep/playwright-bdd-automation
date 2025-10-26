@@ -311,6 +311,6 @@ jobs:
             • Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️
             
             *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
-            *Allure Report:* https://rrendon2025.github.io/playwright-bdd-automation/
+            *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
