@@ -351,15 +351,15 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_FAILED }}
     
-      - name: Send notification to Slack (UNKNOWN)
-        if: ${{ job.status }} == 'UNKNOWN'
+      - name: Send notification to Slack (Unknown)
+        if: ${{ job.status }} == 'Unknown'
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
           author_name: 'Playwright BDD Tests'
           fields: repo,commit,author,took
           mention: 'here'
-          if_mention: UNKNOWN
+          if_mention: Unknown
           text: |
             *Test Results: ${{ job.status }}*
             *Overall Test Status: ${{ steps.prepare_stats.outputs.status || '⚠️ UNKNOWN' }}*
