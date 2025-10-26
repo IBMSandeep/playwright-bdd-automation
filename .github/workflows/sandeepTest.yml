@@ -288,40 +288,9 @@ jobs:
           echo "ui_status=${UI_STATUS:-⚠️ UNKNOWN}" >> $GITHUB_OUTPUT
           
           echo "Test stats prepared for Slack: Total: ${TOTAL_TESTS:-0}, Passed: ${PASSED_TESTS:-0}, Failed: ${FAILED_TESTS:-0}, Skipped: ${SKIPPED_TESTS:-0}, Status: ${TEST_STATUS:-⚠️ UNKNOWN}"
-          
-      - name: Send notification to Slack (success)
-        if: ${{ job.status }} == 'success'
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          author_name: 'Playwright BDD Tests'
-          fields: repo,commit,author,took
-          mention: 'here'
-          if_mention: failure
-          text: |
-            *Test Results: ${{ job.status }}*
-            *Overall Test Status: ${{ steps.prepare_stats.outputs.status || '⚠️ UNKNOWN' }}*
-            *Repository:* ${{ github.repository }}
-            
-            *API Testing Summary: ${{ steps.prepare_stats.outputs.api_status || '⚠️ UNKNOWN' }}*
-            • Total Tests: ${{ steps.prepare_stats.outputs.api_total || '0' }}
-            • Passed: ${{ steps.prepare_stats.outputs.api_passed || '0' }} ✅
-            • Failed: ${{ steps.prepare_stats.outputs.api_failed || '0' }} ❌
-            • Skipped: ${{ steps.prepare_stats.outputs.api_skipped || '0' }} ⏭️
-            
-            *UI Testing Summary: ${{ steps.prepare_stats.outputs.ui_status || '⚠️ UNKNOWN' }}*
-            • Total Tests: ${{ steps.prepare_stats.outputs.ui_total || '0' }}
-            • Passed: ${{ steps.prepare_stats.outputs.ui_passed || '0' }} ✅
-            • Failed: ${{ steps.prepare_stats.outputs.ui_failed || '0' }} ❌
-            • Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️
-            
-            *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
-            *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_PASSED }}
 
-      - name: Send notification to Slack (failure)
-        if: ${{ job.status }} == 'failure'
+      - name: Send notification to Slack (success)
+        if: always()
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
@@ -349,36 +318,98 @@ jobs:
             *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
             *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_FAILED }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          
+    #   - name: Send notification to Slack (success)
+    #     if: ${{ job.status }} == 'success'
+    #     uses: 8398a7/action-slack@v3
+    #     with:
+    #       status: ${{ job.status }}
+    #       author_name: 'Playwright BDD Tests'
+    #       fields: repo,commit,author,took
+    #       mention: 'here'
+    #       if_mention: failure
+    #       text: |
+    #         *Test Results: ${{ job.status }}*
+    #         *Overall Test Status: ${{ steps.prepare_stats.outputs.status || '⚠️ UNKNOWN' }}*
+    #         *Repository:* ${{ github.repository }}
+            
+    #         *API Testing Summary: ${{ steps.prepare_stats.outputs.api_status || '⚠️ UNKNOWN' }}*
+    #         • Total Tests: ${{ steps.prepare_stats.outputs.api_total || '0' }}
+    #         • Passed: ${{ steps.prepare_stats.outputs.api_passed || '0' }} ✅
+    #         • Failed: ${{ steps.prepare_stats.outputs.api_failed || '0' }} ❌
+    #         • Skipped: ${{ steps.prepare_stats.outputs.api_skipped || '0' }} ⏭️
+            
+    #         *UI Testing Summary: ${{ steps.prepare_stats.outputs.ui_status || '⚠️ UNKNOWN' }}*
+    #         • Total Tests: ${{ steps.prepare_stats.outputs.ui_total || '0' }}
+    #         • Passed: ${{ steps.prepare_stats.outputs.ui_passed || '0' }} ✅
+    #         • Failed: ${{ steps.prepare_stats.outputs.ui_failed || '0' }} ❌
+    #         • Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️
+            
+    #         *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
+    #         *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
+    #     env:
+    #       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_PASSED }}
+
+    #   - name: Send notification to Slack (failure)
+    #     if: ${{ job.status }} == 'failure'
+    #     uses: 8398a7/action-slack@v3
+    #     with:
+    #       status: ${{ job.status }}
+    #       author_name: 'Playwright BDD Tests'
+    #       fields: repo,commit,author,took
+    #       mention: 'here'
+    #       if_mention: failure
+    #       text: |
+    #         *Test Results: ${{ job.status }}*
+    #         *Overall Test Status: ${{ steps.prepare_stats.outputs.status || '⚠️ UNKNOWN' }}*
+    #         *Repository:* ${{ github.repository }}
+            
+    #         *API Testing Summary: ${{ steps.prepare_stats.outputs.api_status || '⚠️ UNKNOWN' }}*
+    #         • Total Tests: ${{ steps.prepare_stats.outputs.api_total || '0' }}
+    #         • Passed: ${{ steps.prepare_stats.outputs.api_passed || '0' }} ✅
+    #         • Failed: ${{ steps.prepare_stats.outputs.api_failed || '0' }} ❌
+    #         • Skipped: ${{ steps.prepare_stats.outputs.api_skipped || '0' }} ⏭️
+            
+    #         *UI Testing Summary: ${{ steps.prepare_stats.outputs.ui_status || '⚠️ UNKNOWN' }}*
+    #         • Total Tests: ${{ steps.prepare_stats.outputs.ui_total || '0' }}
+    #         • Passed: ${{ steps.prepare_stats.outputs.ui_passed || '0' }} ✅
+    #         • Failed: ${{ steps.prepare_stats.outputs.ui_failed || '0' }} ❌
+    #         • Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️
+            
+    #         *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
+    #         *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
+    #     env:
+    #       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_FAILED }}
     
-      - name: Send notification to Slack (Unknown)
-        if: ${{ job.status }} == 'Unknown'
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          author_name: 'Playwright BDD Tests'
-          fields: repo,commit,author,took
-          mention: 'here'
-          if_mention: Unknown
-          text: |
-            *Test Results: ${{ job.status }}*
-            *Overall Test Status: ${{ steps.prepare_stats.outputs.status || '⚠️ UNKNOWN' }}*
-            *Repository:* ${{ github.repository }}
+    #   - name: Send notification to Slack (Unknown)
+    #     if: ${{ job.status }} == 'Unknown'
+    #     uses: 8398a7/action-slack@v3
+    #     with:
+    #       status: ${{ job.status }}
+    #       author_name: 'Playwright BDD Tests'
+    #       fields: repo,commit,author,took
+    #       mention: 'here'
+    #       if_mention: Unknown
+    #       text: |
+    #         *Test Results: ${{ job.status }}*
+    #         *Overall Test Status: ${{ steps.prepare_stats.outputs.status || '⚠️ UNKNOWN' }}*
+    #         *Repository:* ${{ github.repository }}
             
-            *API Testing Summary: ${{ steps.prepare_stats.outputs.api_status || '⚠️ UNKNOWN' }}*
-            • Total Tests: ${{ steps.prepare_stats.outputs.api_total || '0' }}
-            • Passed: ${{ steps.prepare_stats.outputs.api_passed || '0' }} ✅
-            • Failed: ${{ steps.prepare_stats.outputs.api_failed || '0' }} ❌
-            • Skipped: ${{ steps.prepare_stats.outputs.api_skipped || '0' }} ⏭️
+    #         *API Testing Summary: ${{ steps.prepare_stats.outputs.api_status || '⚠️ UNKNOWN' }}*
+    #         • Total Tests: ${{ steps.prepare_stats.outputs.api_total || '0' }}
+    #         • Passed: ${{ steps.prepare_stats.outputs.api_passed || '0' }} ✅
+    #         • Failed: ${{ steps.prepare_stats.outputs.api_failed || '0' }} ❌
+    #         • Skipped: ${{ steps.prepare_stats.outputs.api_skipped || '0' }} ⏭️
             
-            *UI Testing Summary: ${{ steps.prepare_stats.outputs.ui_status || '⚠️ UNKNOWN' }}*
-            • Total Tests: ${{ steps.prepare_stats.outputs.ui_total || '0' }}
-            • Passed: ${{ steps.prepare_stats.outputs.ui_passed || '0' }} ✅
-            • Failed: ${{ steps.prepare_stats.outputs.ui_failed || '0' }} ❌
-            • Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️
+    #         *UI Testing Summary: ${{ steps.prepare_stats.outputs.ui_status || '⚠️ UNKNOWN' }}*
+    #         • Total Tests: ${{ steps.prepare_stats.outputs.ui_total || '0' }}
+    #         • Passed: ${{ steps.prepare_stats.outputs.ui_passed || '0' }} ✅
+    #         • Failed: ${{ steps.prepare_stats.outputs.ui_failed || '0' }} ❌
+    #         • Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️
             
-            *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
-            *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_UNKNOWN }}
+    #         *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
+    #         *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
+    #     env:
+    #       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_UNKNOWN }}
         
