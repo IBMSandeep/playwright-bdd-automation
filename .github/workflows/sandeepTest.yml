@@ -21,9 +21,13 @@ on:
         required: false
         type: choice
         options:
-            - user
-            - inventory
-            - login
+            - apiTestSmokeOne
+            - apiTestSmokeTwo
+            - inventory-backpack-details
+            - inventory-backpack-add-to-cart
+            - login-title
+            - login-valid
+            - login-invalid
 
 jobs:
   test:

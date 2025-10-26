@@ -1,13 +1,13 @@
 Feature: Sauce Demo - API Tests
 
-  @api @get
+  @api @get @apiTestSmokeOne
   Scenario: TC1 - Verify homepage content through API
     Given I set the request URL to "https://www.saucedemo.com/"
     When I send a GET request
     Then the response status code should be 200
     And the response should contain "Swag Labs"
 
-  @api @get @json @apiTestSmoke
+  @api @get @json @apiTestSmokeTwo
   Scenario: TC2 - Verify manifest.json content
     Given I set the request URL to "https://www.saucedemo.com/manifest.json"
     When I send a GET request
