@@ -5,7 +5,8 @@ Feature: Login Functionality - UI Tests
   So that I can access my account
 
   Background:
-    Given I am on the login page
+    Given Initiate required instances to execute the test
+    And I am on the login page
 
   @login-title
   Scenario: Verify Title Page

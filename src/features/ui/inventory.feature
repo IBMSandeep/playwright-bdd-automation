@@ -5,7 +5,8 @@ Feature: Inventory Functionality - UI Tests
   So that I can make purchases
 
   Background:
-    Given I am on the login page
+    Given Initiate required instances to execute the test
+    And I am on the login page
     When I login with valid credentials
     Then I should be redirected to the inventory page
 

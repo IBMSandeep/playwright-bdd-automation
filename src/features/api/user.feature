@@ -1,5 +1,8 @@
 Feature: Sauce Demo - API Tests
 
+  Background:
+    Given Initiate required instances to execute the test
+
   @api @get @apiTestSmokeOne
   Scenario: TC1 - Verify homepage content through API
     Given I set the request URL to "https://www.saucedemo.com/"
