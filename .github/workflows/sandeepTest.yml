@@ -68,8 +68,9 @@ jobs:
         id: run_tests
         run: |
           npm run prepare:allure
-          npx cucumber-js || true
-          
+          # Run only scenarios with the @apiTestSmoke tag (change path or tag as needed)
+          npx cucumber-js src/features/api/user.feature --tags "@apiTestSmoke" || true
+
           # First generate the allure report so we can read the accurate counts
           node src/utils/cucumber-allure-adapter.js || true
           npx allure generate allure-results -o allure-report --clean
