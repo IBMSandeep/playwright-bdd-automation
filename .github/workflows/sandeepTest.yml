@@ -318,7 +318,7 @@ jobs:
             *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
             *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
         env:
-          SLACK_WEBHOOK_URL_PASSED: ${{ secrets.SLACK_WEBHOOK_URL_PASSED }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_PASSED }}
 
       - name: Send notification to Slack (failure)
         if: ${{ job.status }} == 'failure'
@@ -349,5 +349,5 @@ jobs:
             *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
             *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
         env:
-          SLACK_WEBHOOK_URL_FAILED: ${{ secrets.SLACK_WEBHOOK_URL_FAILED }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_FAILED }}
         
