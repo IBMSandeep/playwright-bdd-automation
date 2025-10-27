@@ -71,8 +71,11 @@ jobs:
       - name: Run tests with Allure reporting
         id: run_tests
         env:
-          OLLAMA_URL: ${{ secrets.OLLAMA_URL || '' }}
+          OLLAMA_URL: ${{ secrets.OLLAMA_URL || 'http://localhost:11434' }}
           OLLAMA_API_PATH: ${{ secrets.OLLAMA_API_PATH || '/api/generate' }}
+        # env:
+        #   OLLAMA_URL: ${{ secrets.OLLAMA_URL || '' }}
+        #   OLLAMA_API_PATH: ${{ secrets.OLLAMA_API_PATH || '/api/generate' }}
         run: |
           npm run prepare:allure
           # Run only scenarios with the @apiTestSmokeTwo tag (change path or tag as needed)
