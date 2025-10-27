@@ -67,7 +67,7 @@ jobs:
           mkdir -p test-results/screenshots
           mkdir -p test-results/videos
           mkdir -p allure-results
-      
+
       - name: Run tests with Allure reporting
         id: run_tests
         env:
@@ -76,6 +76,11 @@ jobs:
         # env:
         #   OLLAMA_URL: ${{ secrets.OLLAMA_URL || '' }}
         #   OLLAMA_API_PATH: ${{ secrets.OLLAMA_API_PATH || '/api/generate' }}
+        
+        # Note: removed invalid nested `steps:` block that caused YAML indentation errors.
+        # If you need to run a separate checkout or curl probe, add a dedicated step instead,
+        # or include the commands inside the main `run: |` block below.
+
         run: |
           npm run prepare:allure
           # Run only scenarios with the @apiTestSmokeTwo tag (change path or tag as needed)
