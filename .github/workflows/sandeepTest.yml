@@ -70,6 +70,9 @@ jobs:
       
       - name: Run tests with Allure reporting
         id: run_tests
+        env:
+          OLLAMA_URL: ${{ secrets.OLLAMA_URL || '' }}
+          OLLAMA_API_PATH: ${{ secrets.OLLAMA_API_PATH || '/api/generate' }}
         run: |
           npm run prepare:allure
           # Run only scenarios with the @apiTestSmokeTwo tag (change path or tag as needed)
@@ -77,6 +80,11 @@ jobs:
 
           # First generate the allure report so we can read the accurate counts
           node src/utils/cucumber-allure-adapter.js || true
+
+          # Run LLM failure analysis and attach results into allure-results
+          # (uses OLLAMA_URL/OLLAMA_API_PATH if provided; will skip if no failed tests)
+          node .github/scripts/llm-failure-analysis.js --allure-dir=allure-results --model=llama2 --ollama-url="$OLLAMA_URL" --api-path="$OLLAMA_API_PATH" || true
+
           npx allure generate allure-results -o allure-report --clean
           
           # Extract test statistics from Allure results
