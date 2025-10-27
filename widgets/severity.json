@@ -1,1 +1,1 @@
-[{"uid":"52eafd8d473ca0a2","name":"TC2 - Verify manifest.json content","time":{"start":1761587038251,"stop":1761587038251,"duration":0},"status":"passed","severity":"normal"}]
+[{"uid":"7601af9fa1ad01a6","name":"TC2 - Verify manifest.json content","time":{"start":1761587523257,"stop":1761587523257,"duration":0},"status":"failed","severity":"normal"}]

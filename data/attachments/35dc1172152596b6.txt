@@ -1,0 +1,1 @@
+LLM call failed: Ollama CLI call failed: spawnSync ollama ENOENT
