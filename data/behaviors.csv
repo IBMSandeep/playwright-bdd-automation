@@ -1,2 +1,8 @@
 "BROKEN","EPIC","FAILED","FEATURE","PASSED","SKIPPED","STORY","UNKNOWN"
+"0","","0","Inventory Functionality - UI Tests","1","0","Should add Sauce Labs Backpack to cart","0"
 "0","","1","Sauce Demo - API Tests","0","0","TC2 - Verify manifest.json content","0"
+"0","","0","Login Functionality - UI Tests","1","0","Login with valid credentials","0"
+"0","","0","Login Functionality - UI Tests","1","0","Login with invalid credentials","0"
+"0","","0","Sauce Demo - API Tests","1","0","TC1 - Verify homepage content through API","0"
+"0","","0","Inventory Functionality - UI Tests","1","0","Should validate Sauce Labs Backpack product details","0"
+"0","","0","Login Functionality - UI Tests","1","0","Verify Title Page","0"
