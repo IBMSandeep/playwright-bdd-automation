@@ -2,10 +2,8 @@ name: Playwright BDD In Sandeep Branch
 # Trigger workflow run - updated on user request
 
 on:
-#   push:
-#     branches: [ main ]
-#   pull_request:
-#     branches: [ main ]
+  push:
+    branches: [ '**' ]  # Trigger on push to any branch
   workflow_dispatch:
     inputs:
       project_name:
@@ -30,6 +28,34 @@ on:
             - login-invalid
 
 jobs:
+  llama2_generate:
+    runs-on: ubuntu-latest
+    env:
+      OLLAMA_URL: ${{ secrets.OLLAMA_URL || 'http://localhost:11434' }}
+      OLLAMA_API_PATH: ${{ secrets.OLLAMA_API_PATH || '/api/generate' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate text with LLaMA2 and save to file
+        run: |
+          curl -X POST "$OLLAMA_URL$OLLAMA_API_PATH" \
+          -H "Content-Type: application/json" \
+          -d '{
+                "model": "llama2",
+                "prompt": "Code was pushed to the repository. Summarize the importance of testing after code changes.",
+                "stream": false
+              }' > ollama_output.txt
+
+      - name: Commit and push response file
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add ollama_output.txt
+          git commit -m "Add Ollama response after push"
+          git push
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15  # Add timeout to prevent stuck jobs
