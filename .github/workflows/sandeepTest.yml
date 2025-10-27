@@ -40,21 +40,49 @@ jobs:
 
       - name: Generate text with LLaMA2 and save to file
         run: |
-          curl -X POST "$OLLAMA_URL$OLLAMA_API_PATH" \
-          -H "Content-Type: application/json" \
-          -d '{
-                "model": "llama2",
-                "prompt": "Code was pushed to the repository. Summarize the importance of testing after code changes.",
-                "stream": false
-              }' > ollama_output.txt
+          set -euo pipefail
+          echo "Probing Ollama endpoint: $OLLAMA_URL$OLLAMA_API_PATH"
+
+          RETRY=0
+          MAX_RETRIES=3
+          sleep_between=2
+
+          # try up to MAX_RETRIES with a short sleep between attempts
+          until [ $RETRY -ge $MAX_RETRIES ]
+          do
+            echo "Attempt $((RETRY+1)) of $MAX_RETRIES..."
+            curl --silent --show-error --fail --max-time 10 "$OLLAMA_URL$OLLAMA_API_PATH" \
+              -H "Content-Type: application/json" \
+              -d '{"model":"llama2","prompt":"Code was pushed to the repository. Summarize the importance of testing after code changes.","stream":false}' > ollama_output.txt 2>curl_err.log && break || true
+            RETRY=$((RETRY+1))
+            echo "curl failed (see curl_err.log), sleeping $sleep_between seconds before retry..."
+            cat curl_err.log || true
+            sleep $sleep_between
+          done
+
+          # If no useful response, write a placeholder JSON so downstream steps don't fail
+          if [ ! -s ollama_output.txt ]; then
+            echo "No response from Ollama after $MAX_RETRIES attempts. Creating placeholder file."
+            printf '{"error":"no_response","notes":"Ollama not reachable at %s"}\n' "$OLLAMA_URL$OLLAMA_API_PATH" > ollama_output.txt
+          else
+            echo "Received response from Ollama (first 200 chars):"
+            head -c 200 ollama_output.txt || true
+            echo
+          fi
 
       - name: Commit and push response file
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git add ollama_output.txt
-          git commit -m "Add Ollama response after push"
-          git push
+          # Only commit when the response file contains something other than the placeholder
+          if [ -s ollama_output.txt ] && ! grep -q '"error":"no_response"' ollama_output.txt; then
+            git config --global user.name "github-actions"
+            git config --global user.email "github-actions@github.com"
+            git add ollama_output.txt
+            git commit -m "Add Ollama response after push" || echo "No changes to commit"
+            git push || echo "Push failed or not allowed from workflow runner"
+          else
+            echo "Skipping commit: no valid Ollama response to commit. See ollama_output.txt for details."
+            cat ollama_output.txt || true
+          fi
 
   test:
     runs-on: ubuntu-latest
