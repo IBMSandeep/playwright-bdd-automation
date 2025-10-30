@@ -75,58 +75,93 @@ jobs:
           node src/utils/cucumber-allure-adapter.js || true
           npx allure generate allure-results -o allure-report --clean
           
-          # Extract test statistics from Allure results
-          echo "Parsing test results..."
-          
+          # Extract test statistics from Allure results (scenario-level using jq)
+          echo "Parsing test results (scenario-level)..."
+
+          # install jq (available on ubuntu runners)
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "Installing jq for JSON parsing..."
+            sudo apt-get update -y && sudo apt-get install -y jq
+          fi
+
           # Initialize counters for total tests
           TOTAL_TESTS=0
           PASSED_TESTS=0
           FAILED_TESTS=0
           SKIPPED_TESTS=0
-          
+
           # Initialize counters for API tests
           API_TOTAL=0
           API_PASSED=0
           API_FAILED=0
           API_SKIPPED=0
-          
+
           # Initialize counters for UI tests
           UI_TOTAL=0
           UI_PASSED=0
           UI_FAILED=0
           UI_SKIPPED=0
-          
-          # Read from Allure report data
-          if [ -d "allure-report/data/test-cases" ]; then
-            echo "Reading test statistics from test cases..."
-            
-            # Count API tests from files containing API Tests in the name
-            API_TOTAL=$(grep -l "API Tests" allure-report/data/test-cases/*.json 2>/dev/null | wc -l || echo 0)
-            API_PASSED=$(grep -l "API Tests" allure-report/data/test-cases/*.json 2>/dev/null | xargs grep -l '"status":"passed"' 2>/dev/null | wc -l || echo 0)
-            API_FAILED=$(grep -l "API Tests" allure-report/data/test-cases/*.json 2>/dev/null | xargs grep -l '"status":"failed\|broken"' 2>/dev/null | wc -l || echo 0)
-            API_SKIPPED=$(grep -l "API Tests" allure-report/data/test-cases/*.json 2>/dev/null | xargs grep -l '"status":"skipped"' 2>/dev/null | wc -l || echo 0)
-            
-            # Count UI tests from files containing UI Tests in the name
-            UI_TOTAL=$(grep -l "UI Tests" allure-report/data/test-cases/*.json 2>/dev/null | wc -l || echo 0)
-            UI_PASSED=$(grep -l "UI Tests" allure-report/data/test-cases/*.json 2>/dev/null | xargs grep -l '"status":"passed"' 2>/dev/null | wc -l || echo 0)
-            UI_FAILED=$(grep -l "UI Tests" allure-report/data/test-cases/*.json 2>/dev/null | xargs grep -l '"status":"failed\|broken"' 2>/dev/null | wc -l || echo 0)
-            UI_SKIPPED=$(grep -l "UI Tests" allure-report/data/test-cases/*.json 2>/dev/null | xargs grep -l '"status":"skipped"' 2>/dev/null | wc -l || echo 0)
-            
-            # Calculate total values
-            TOTAL_TESTS=$((API_TOTAL + UI_TOTAL))
-            PASSED_TESTS=$((API_PASSED + UI_PASSED))
-            FAILED_TESTS=$((API_FAILED + UI_FAILED))
-            SKIPPED_TESTS=$((API_SKIPPED + UI_SKIPPED))
+
+          # Choose source files: prefer generated report test-cases, fall back to allure-results
+          if compgen -G "allure-report/data/test-cases/*.json" >/dev/null 2>&1; then
+            FILES=(allure-report/data/test-cases/*.json)
+          elif compgen -G "allure-results/*.json" >/dev/null 2>&1; then
+            FILES=(allure-results/*.json)
+          else
+            FILES=()
           fi
-          
-          # Fallback to counting from feature files if needed
-          if [ $TOTAL_TESTS -eq 0 ]; then
+
+          for f in "${FILES[@]}"; do
+            # Read top-level status for the test-case (scenario). If missing, treat as skipped.
+            status=$(jq -r '.status // "skipped"' "$f" 2>/dev/null || echo "skipped")
+
+            # Determine whether this is an API or UI test: check path or test name
+            is_api=0
+            is_ui=0
+            # check filename/path for api/ui
+            if echo "$f" | grep -iqE '/?api/?'; then is_api=1; fi
+            if echo "$f" | grep -iqE '/?ui/?'; then is_ui=1; fi
+            # also inspect the test name/fullName for hints
+            testname=$(jq -r '.fullName // .name // ""' "$f" 2>/dev/null || echo "")
+            if [ $is_api -eq 0 ] && echo "$testname" | grep -iq 'api'; then is_api=1; fi
+            if [ $is_ui -eq 0 ] && echo "$testname" | grep -iq 'ui\|ui test\|ui_tests'; then is_ui=1; fi
+
+            TOTAL_TESTS=$((TOTAL_TESTS+1))
+            case "$status" in
+              passed)
+                PASSED_TESTS=$((PASSED_TESTS+1))
+                if [ $is_api -eq 1 ]; then API_PASSED=$((API_PASSED+1)); API_TOTAL=$((API_TOTAL+1));
+                elif [ $is_ui -eq 1 ]; then UI_PASSED=$((UI_PASSED+1)); UI_TOTAL=$((UI_TOTAL+1));
+                else API_PASSED=$API_PASSED; UI_PASSED=$UI_PASSED; fi
+                ;;
+              failed|broken)
+                FAILED_TESTS=$((FAILED_TESTS+1))
+                if [ $is_api -eq 1 ]; then API_FAILED=$((API_FAILED+1)); API_TOTAL=$((API_TOTAL+1));
+                elif [ $is_ui -eq 1 ]; then UI_FAILED=$((UI_FAILED+1)); UI_TOTAL=$((UI_TOTAL+1));
+                else API_FAILED=$API_FAILED; UI_FAILED=$UI_FAILED; fi
+                ;;
+              skipped|unknown)
+                SKIPPED_TESTS=$((SKIPPED_TESTS+1))
+                if [ $is_api -eq 1 ]; then API_SKIPPED=$((API_SKIPPED+1)); API_TOTAL=$((API_TOTAL+1));
+                elif [ $is_ui -eq 1 ]; then UI_SKIPPED=$((UI_SKIPPED+1)); UI_TOTAL=$((UI_TOTAL+1));
+                else API_SKIPPED=$API_SKIPPED; UI_SKIPPED=$UI_SKIPPED; fi
+                ;;
+              *)
+                # treat any unknown status as skipped
+                SKIPPED_TESTS=$((SKIPPED_TESTS+1))
+                if [ $is_api -eq 1 ]; then API_SKIPPED=$((API_SKIPPED+1)); API_TOTAL=$((API_TOTAL+1));
+                elif [ $is_ui -eq 1 ]; then UI_SKIPPED=$((UI_SKIPPED+1)); UI_TOTAL=$((UI_TOTAL+1));
+                fi
+                ;;
+            esac
+          done
+
+          # If we didn't find any per-file results, fall back to counting Scenarios in feature files
+          if [ "$TOTAL_TESTS" -eq 0 ]; then
             echo "Using fallback method to count tests from feature files..."
             API_TOTAL=$(grep -r "Scenario:" src/features/api | wc -l || echo 0)
             UI_TOTAL=$(grep -r "Scenario:" src/features/ui | wc -l || echo 0)
             TOTAL_TESTS=$((API_TOTAL + UI_TOTAL))
-            
-            # Assume all tests passed if we can't determine status
             API_PASSED=$API_TOTAL
             UI_PASSED=$UI_TOTAL
             API_FAILED=0
