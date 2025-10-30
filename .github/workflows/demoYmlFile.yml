@@ -292,8 +292,31 @@ jobs:
       - name: Wait for report to be published
         if: always()
         run: |
-          echo "Waiting for 2 minutes to ensure test results are fully processed..."
-          sleep 120
+          echo "Checking if report is published..."
+          max_attempts=24  # 2 minutes total (24 * 5 seconds)
+          attempt=1
+          report_url="https://ibmsandeep.github.io/playwright-bdd-typescripts/index.html"
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt of $max_attempts: Checking report availability..."
+            
+            # Try to fetch the report URL silently
+            if curl -s -f -I "$report_url" >/dev/null 2>&1; then
+              echo "✅ Report is published and accessible!"
+              exit 0
+            fi
+            
+            # If we reach the max attempts, report but don't fail the step
+            if [ $attempt -eq $max_attempts ]; then
+              echo "⚠️ Timed out waiting for report to be published. The report might take a few more minutes to be accessible."
+              exit 0
+            fi
+            
+            # Wait 5 seconds before next attempt
+            echo "Report not ready yet, waiting 5 seconds..."
+            sleep 5
+            attempt=$((attempt + 1))
+          done
       
       - name: Prepare test stats for Slack
         if: always()
@@ -355,11 +378,15 @@ jobs:
         if: always()
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp.gmail.com
+          server_address: outlook.office365.com  # Microsoft 365 preferred SMTP server
           server_port: 587
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "🎭 Playwright BDD Test Results - ${{ job.status }}"
+          secure: true  # Enable TLS
+          priority: 'high'  # Mark test results as high priority
+          username: ${{ secrets.EMAIL_USERNAME }}  # Your IBM email
+          password: ${{ secrets.EMAIL_PASSWORD }}  # Your IBM email password
+          subject: "[Test Results] Playwright BDD - ${{ job.status }} on ${{ github.ref_name }}"
+          reply_to: ${{ secrets.EMAIL_USERNAME }}  # Set reply-to as your email
+          ignore_cert: false  # Enforce certificate validation
           from: Playwright BDD Testing <${{ secrets.EMAIL_USERNAME }}>
           to: ${{ secrets.EMAIL_RECIPIENTS }}
           html_body: |
