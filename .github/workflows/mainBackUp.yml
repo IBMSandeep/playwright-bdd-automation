@@ -1,4 +1,4 @@
-name: Playwright BDD In Main Branch
+name: Playwright BDD In Back UpBranch
 # Trigger workflow run - updated on user request
 
 on:
