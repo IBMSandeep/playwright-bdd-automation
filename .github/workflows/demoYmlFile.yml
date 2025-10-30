@@ -378,15 +378,15 @@ jobs:
         if: always()
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: outlook.office365.com  # Microsoft 365 preferred SMTP server
+          server_address: smtp.office365.com  # Microsoft 365 SMTP server
           server_port: 587
-          secure: true  # Enable TLS
+          secure: tls  # Use explicit TLS
           priority: 'high'  # Mark test results as high priority
           username: ${{ secrets.EMAIL_USERNAME }}  # Your IBM email
           password: ${{ secrets.EMAIL_PASSWORD }}  # Your IBM email password
           subject: "[Test Results] Playwright BDD - ${{ job.status }} on ${{ github.ref_name }}"
           reply_to: ${{ secrets.EMAIL_USERNAME }}  # Set reply-to as your email
-          ignore_cert: false  # Enforce certificate validation
+          ignore_cert: true  # Allow self-signed certificates for testing
           from: Playwright BDD Testing <${{ secrets.EMAIL_USERNAME }}>
           to: ${{ secrets.EMAIL_RECIPIENTS }}
           html_body: |
