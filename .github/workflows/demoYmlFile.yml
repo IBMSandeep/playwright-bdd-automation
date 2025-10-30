@@ -374,58 +374,58 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: Send email notification
-        if: always()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.office365.com  # Microsoft 365 SMTP server
-          server_port: 587
-          secure: tls  # Use explicit TLS
-          priority: 'high'  # Mark test results as high priority
-          username: ${{ secrets.EMAIL_USERNAME }}  # Your IBM email
-          password: ${{ secrets.EMAIL_PASSWORD }}  # Your IBM email password
-          subject: "[Test Results] Playwright BDD - ${{ job.status }} on ${{ github.ref_name }}"
-          reply_to: ${{ secrets.EMAIL_USERNAME }}  # Set reply-to as your email
-          ignore_cert: true  # Allow self-signed certificates for testing
-          from: Playwright BDD Testing <${{ secrets.EMAIL_USERNAME }}>
-          to: ${{ secrets.EMAIL_RECIPIENTS }}
-          html_body: |
-            <h2>Test Results Summary</h2>
-            <p><strong>Job Status:</strong> ${{ job.status }}</p>
-            <p><strong>Repository:</strong> ${{ github.repository }}</p>
-            <p><strong>Branch:</strong> ${{ github.ref_name }}</p>
-            <p><strong>Commit:</strong> ${{ github.sha }}</p>
+      # - name: Send email notification
+      #   if: always()
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: smtp.office365.com  # Microsoft 365 SMTP server
+      #     server_port: 587
+      #     secure: tls  # Use explicit TLS
+      #     priority: 'high'  # Mark test results as high priority
+      #     username: ${{ secrets.EMAIL_USERNAME }}  # Your IBM email
+      #     password: ${{ secrets.EMAIL_PASSWORD }}  # Your IBM email password
+      #     subject: "[Test Results] Playwright BDD - ${{ job.status }} on ${{ github.ref_name }}"
+      #     reply_to: ${{ secrets.EMAIL_USERNAME }}  # Set reply-to as your email
+      #     ignore_cert: true  # Allow self-signed certificates for testing
+      #     from: Playwright BDD Testing <${{ secrets.EMAIL_USERNAME }}>
+      #     to: ${{ secrets.EMAIL_RECIPIENTS }}
+      #     html_body: |
+      #       <h2>Test Results Summary</h2>
+      #       <p><strong>Job Status:</strong> ${{ job.status }}</p>
+      #       <p><strong>Repository:</strong> ${{ github.repository }}</p>
+      #       <p><strong>Branch:</strong> ${{ github.ref_name }}</p>
+      #       <p><strong>Commit:</strong> ${{ github.sha }}</p>
             
-            <h3>Overall Statistics</h3>
-            <ul>
-              <li>Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}</li>
-              <li>Passed: ${{ steps.prepare_stats.outputs.passed || '0' }} ✅</li>
-              <li>Failed: ${{ steps.prepare_stats.outputs.failed || '0' }} ❌</li>
-              <li>Skipped: ${{ steps.prepare_stats.outputs.skipped || '0' }} ⏭️</li>
-            </ul>
+      #       <h3>Overall Statistics</h3>
+      #       <ul>
+      #         <li>Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}</li>
+      #         <li>Passed: ${{ steps.prepare_stats.outputs.passed || '0' }} ✅</li>
+      #         <li>Failed: ${{ steps.prepare_stats.outputs.failed || '0' }} ❌</li>
+      #         <li>Skipped: ${{ steps.prepare_stats.outputs.skipped || '0' }} ⏭️</li>
+      #       </ul>
             
-            <h3>API Tests</h3>
-            <ul>
-              <li>Status: ${{ steps.prepare_stats.outputs.api_status || '⚠️ UNKNOWN' }}</li>
-              <li>Total: ${{ steps.prepare_stats.outputs.api_total || '0' }}</li>
-              <li>Passed: ${{ steps.prepare_stats.outputs.api_passed || '0' }} ✅</li>
-              <li>Failed: ${{ steps.prepare_stats.outputs.api_failed || '0' }} ❌</li>
-              <li>Skipped: ${{ steps.prepare_stats.outputs.api_skipped || '0' }} ⏭️</li>
-            </ul>
+      #       <h3>API Tests</h3>
+      #       <ul>
+      #         <li>Status: ${{ steps.prepare_stats.outputs.api_status || '⚠️ UNKNOWN' }}</li>
+      #         <li>Total: ${{ steps.prepare_stats.outputs.api_total || '0' }}</li>
+      #         <li>Passed: ${{ steps.prepare_stats.outputs.api_passed || '0' }} ✅</li>
+      #         <li>Failed: ${{ steps.prepare_stats.outputs.api_failed || '0' }} ❌</li>
+      #         <li>Skipped: ${{ steps.prepare_stats.outputs.api_skipped || '0' }} ⏭️</li>
+      #       </ul>
             
-            <h3>UI Tests</h3>
-            <ul>
-              <li>Status: ${{ steps.prepare_stats.outputs.ui_status || '⚠️ UNKNOWN' }}</li>
-              <li>Total: ${{ steps.prepare_stats.outputs.ui_total || '0' }}</li>
-              <li>Passed: ${{ steps.prepare_stats.outputs.ui_passed || '0' }} ✅</li>
-              <li>Failed: ${{ steps.prepare_stats.outputs.ui_failed || '0' }} ❌</li>
-              <li>Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️</li>
-            </ul>
+      #       <h3>UI Tests</h3>
+      #       <ul>
+      #         <li>Status: ${{ steps.prepare_stats.outputs.ui_status || '⚠️ UNKNOWN' }}</li>
+      #         <li>Total: ${{ steps.prepare_stats.outputs.ui_total || '0' }}</li>
+      #         <li>Passed: ${{ steps.prepare_stats.outputs.ui_passed || '0' }} ✅</li>
+      #         <li>Failed: ${{ steps.prepare_stats.outputs.ui_failed || '0' }} ❌</li>
+      #         <li>Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️</li>
+      #       </ul>
             
-            <p>
-              <strong>View Full Report:</strong><br>
-              <a href="https://ibmsandeep.github.io/playwright-bdd-typescripts/">Allure Test Report</a>
-            </p>
+      #       <p>
+      #         <strong>View Full Report:</strong><br>
+      #         <a href="https://ibmsandeep.github.io/playwright-bdd-typescripts/">Allure Test Report</a>
+      #       </p>
             
-            <hr>
-            <p><em>This is an automated email from GitHub Actions</em></p>
+      #       <hr>
+      #       <p><em>This is an automated email from GitHub Actions</em></p>
