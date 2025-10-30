@@ -2,12 +2,34 @@ name: Playwright BDD In Main Branch
 # Trigger workflow run - updated on user request
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+  # push:
+  #   branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
     # Manual trigger
+
+  workflow_dispatch:
+    inputs:
+      project_name:
+        description: 'Run the Playwright BDD tests'
+        required: true
+        default: 'playwright'
+      workflow_name:
+        description: 'Reason for running the workflow'
+        required: false
+        default: 'playwright test cases'
+      behave_tag_choice:
+        description: 'Tag to run specific tests'
+        required: false
+        type: choice
+        options:
+            - apiTestSmokeOne
+            - apiTestSmokeTwo
+            - inventory-backpack-details
+            - inventory-backpack-add-to-cart
+            - login-title
+            - login-valid
+            - login-invalid
 
 jobs:
   test:
@@ -273,7 +295,7 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          author_name: 'Playwright BDD Tests'
+          author_name: 'Playwright BDD Main Tests'
           fields: repo,commit,author,took
           mention: 'here'
           if_mention: failure
@@ -295,6 +317,6 @@ jobs:
             • Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️
             
             *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
-            *Allure Report:* https://rrendon2025.github.io/playwright-bdd-automation/
+            *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 

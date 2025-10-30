@@ -1,17 +1,17 @@
-name: Playwright BDD In Sandeep Branch
+name: Playwright BDD In Demo Branch
 # Trigger workflow run - updated on user request
+
 on:
-#     branches: [ main ]
   workflow_dispatch:
     inputs:
       project_name:
         description: 'Run the Playwright BDD tests'
         required: true
-        default: 'sandeepTest'
+        default: 'demoYmlFile'
       workflow_name:
         description: 'Reason for running the workflow'
         required: false
-        default: 'sandeepTest test cases'
+        default: 'demoYmlFile test cases'
       behave_tag_choice:
         description: 'Tag to run specific tests'
         required: false
@@ -26,62 +26,6 @@ on:
             - login-invalid
 
 jobs:
-  llama2_generate:
-    runs-on: ubuntu-latest
-    env:
-      OLLAMA_URL: ${{ secrets.OLLAMA_URL || 'http://localhost:11434' }}
-      OLLAMA_API_PATH: ${{ secrets.OLLAMA_API_PATH || '/api/generate' }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Generate text with LLaMA2 and save to file
-        run: |
-          set -euo pipefail
-          echo "Probing Ollama endpoint: $OLLAMA_URL$OLLAMA_API_PATH"
-
-          RETRY=0
-          MAX_RETRIES=3
-          sleep_between=2
-
-          # try up to MAX_RETRIES with a short sleep between attempts
-          until [ $RETRY -ge $MAX_RETRIES ]
-          do
-            echo "Attempt $((RETRY+1)) of $MAX_RETRIES..."
-            curl --silent --show-error --fail --max-time 10 "$OLLAMA_URL$OLLAMA_API_PATH" \
-              -H "Content-Type: application/json" \
-              -d '{"model":"llama2","prompt":"Code was pushed to the repository. Summarize the importance of testing after code changes.","stream":false}' > ollama_output.txt 2>curl_err.log && break || true
-            RETRY=$((RETRY+1))
-            echo "curl failed (see curl_err.log), sleeping $sleep_between seconds before retry..."
-            cat curl_err.log || true
-            sleep $sleep_between
-          done
-
-          # If no useful response, write a placeholder JSON so downstream steps don't fail
-          if [ ! -s ollama_output.txt ]; then
-            echo "No response from Ollama after $MAX_RETRIES attempts. Creating placeholder file."
-            printf '{"error":"no_response","notes":"Ollama not reachable at %s"}\n' "$OLLAMA_URL$OLLAMA_API_PATH" > ollama_output.txt
-          else
-            echo "Received response from Ollama (first 200 chars):"
-            head -c 200 ollama_output.txt || true
-            echo
-          fi
-
-      - name: Commit and push response file
-        run: |
-          # Only commit when the response file contains something other than the placeholder
-          if [ -s ollama_output.txt ] && ! grep -q '"error":"no_response"' ollama_output.txt; then
-            git config --global user.name "github-actions"
-            git config --global user.email "github-actions@github.com"
-            git add ollama_output.txt
-            git commit -m "Add Ollama response after push" || echo "No changes to commit"
-            git push || echo "Push failed or not allowed from workflow runner"
-          else
-            echo "Skipping commit: no valid Ollama response to commit. See ollama_output.txt for details."
-            cat ollama_output.txt || true
-          fi
-
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15  # Add timeout to prevent stuck jobs
@@ -119,20 +63,9 @@ jobs:
           mkdir -p test-results/screenshots
           mkdir -p test-results/videos
           mkdir -p allure-results
-
+      
       - name: Run tests with Allure reporting
         id: run_tests
-        env:
-          OLLAMA_URL: ${{ secrets.OLLAMA_URL || 'http://localhost:11434' }}
-          OLLAMA_API_PATH: ${{ secrets.OLLAMA_API_PATH || '/api/generate' }}
-        # env:
-        #   OLLAMA_URL: ${{ secrets.OLLAMA_URL || '' }}
-        #   OLLAMA_API_PATH: ${{ secrets.OLLAMA_API_PATH || '/api/generate' }}
-        
-        # Note: removed invalid nested `steps:` block that caused YAML indentation errors.
-        # If you need to run a separate checkout or curl probe, add a dedicated step instead,
-        # or include the commands inside the main `run: |` block below.
-
         run: |
           npm run prepare:allure
           # Run only scenarios with the @apiTestSmokeTwo tag (change path or tag as needed)
@@ -140,11 +73,6 @@ jobs:
 
           # First generate the allure report so we can read the accurate counts
           node src/utils/cucumber-allure-adapter.js || true
-
-          # Run LLM failure analysis and attach results into allure-results
-          # (uses OLLAMA_URL/OLLAMA_API_PATH if provided; will skip if no failed tests)
-          node .github/scripts/llm-failure-analysis.js --allure-dir=allure-results --model=llama2 --ollama-url="$OLLAMA_URL" --api-path="$OLLAMA_API_PATH" || true
-
           npx allure generate allure-results -o allure-report --clean
           
           # Extract test statistics from Allure results
@@ -362,7 +290,7 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          author_name: 'Playwright BDD Tests'
+          author_name: 'Playwright BDD Demo Tests'
           fields: repo,commit,author,took
           mention: 'here'
           if_mention: failure
@@ -387,97 +315,3 @@ jobs:
             *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          
-    #   - name: Send notification to Slack (success)
-    #     if: ${{ job.status }} == 'success'
-    #     uses: 8398a7/action-slack@v3
-    #     with:
-    #       status: ${{ job.status }}
-    #       author_name: 'Playwright BDD Tests'
-    #       fields: repo,commit,author,took
-    #       mention: 'here'
-    #       if_mention: failure
-    #       text: |
-    #         *Test Results: ${{ job.status }}*
-    #         *Overall Test Status: ${{ steps.prepare_stats.outputs.status || '⚠️ UNKNOWN' }}*
-    #         *Repository:* ${{ github.repository }}
-            
-    #         *API Testing Summary: ${{ steps.prepare_stats.outputs.api_status || '⚠️ UNKNOWN' }}*
-    #         • Total Tests: ${{ steps.prepare_stats.outputs.api_total || '0' }}
-    #         • Passed: ${{ steps.prepare_stats.outputs.api_passed || '0' }} ✅
-    #         • Failed: ${{ steps.prepare_stats.outputs.api_failed || '0' }} ❌
-    #         • Skipped: ${{ steps.prepare_stats.outputs.api_skipped || '0' }} ⏭️
-            
-    #         *UI Testing Summary: ${{ steps.prepare_stats.outputs.ui_status || '⚠️ UNKNOWN' }}*
-    #         • Total Tests: ${{ steps.prepare_stats.outputs.ui_total || '0' }}
-    #         • Passed: ${{ steps.prepare_stats.outputs.ui_passed || '0' }} ✅
-    #         • Failed: ${{ steps.prepare_stats.outputs.ui_failed || '0' }} ❌
-    #         • Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️
-            
-    #         *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
-    #         *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
-    #     env:
-    #       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_PASSED }}
-
-    #   - name: Send notification to Slack (failure)
-    #     if: ${{ job.status }} == 'failure'
-    #     uses: 8398a7/action-slack@v3
-    #     with:
-    #       status: ${{ job.status }}
-    #       author_name: 'Playwright BDD Tests'
-    #       fields: repo,commit,author,took
-    #       mention: 'here'
-    #       if_mention: failure
-    #       text: |
-    #         *Test Results: ${{ job.status }}*
-    #         *Overall Test Status: ${{ steps.prepare_stats.outputs.status || '⚠️ UNKNOWN' }}*
-    #         *Repository:* ${{ github.repository }}
-            
-    #         *API Testing Summary: ${{ steps.prepare_stats.outputs.api_status || '⚠️ UNKNOWN' }}*
-    #         • Total Tests: ${{ steps.prepare_stats.outputs.api_total || '0' }}
-    #         • Passed: ${{ steps.prepare_stats.outputs.api_passed || '0' }} ✅
-    #         • Failed: ${{ steps.prepare_stats.outputs.api_failed || '0' }} ❌
-    #         • Skipped: ${{ steps.prepare_stats.outputs.api_skipped || '0' }} ⏭️
-            
-    #         *UI Testing Summary: ${{ steps.prepare_stats.outputs.ui_status || '⚠️ UNKNOWN' }}*
-    #         • Total Tests: ${{ steps.prepare_stats.outputs.ui_total || '0' }}
-    #         • Passed: ${{ steps.prepare_stats.outputs.ui_passed || '0' }} ✅
-    #         • Failed: ${{ steps.prepare_stats.outputs.ui_failed || '0' }} ❌
-    #         • Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️
-            
-    #         *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
-    #         *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
-    #     env:
-    #       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_FAILED }}
-    
-    #   - name: Send notification to Slack (Unknown)
-    #     if: ${{ job.status }} == 'Unknown'
-    #     uses: 8398a7/action-slack@v3
-    #     with:
-    #       status: ${{ job.status }}
-    #       author_name: 'Playwright BDD Tests'
-    #       fields: repo,commit,author,took
-    #       mention: 'here'
-    #       if_mention: Unknown
-    #       text: |
-    #         *Test Results: ${{ job.status }}*
-    #         *Overall Test Status: ${{ steps.prepare_stats.outputs.status || '⚠️ UNKNOWN' }}*
-    #         *Repository:* ${{ github.repository }}
-            
-    #         *API Testing Summary: ${{ steps.prepare_stats.outputs.api_status || '⚠️ UNKNOWN' }}*
-    #         • Total Tests: ${{ steps.prepare_stats.outputs.api_total || '0' }}
-    #         • Passed: ${{ steps.prepare_stats.outputs.api_passed || '0' }} ✅
-    #         • Failed: ${{ steps.prepare_stats.outputs.api_failed || '0' }} ❌
-    #         • Skipped: ${{ steps.prepare_stats.outputs.api_skipped || '0' }} ⏭️
-            
-    #         *UI Testing Summary: ${{ steps.prepare_stats.outputs.ui_status || '⚠️ UNKNOWN' }}*
-    #         • Total Tests: ${{ steps.prepare_stats.outputs.ui_total || '0' }}
-    #         • Passed: ${{ steps.prepare_stats.outputs.ui_passed || '0' }} ✅
-    #         • Failed: ${{ steps.prepare_stats.outputs.ui_failed || '0' }} ❌
-    #         • Skipped: ${{ steps.prepare_stats.outputs.ui_skipped || '0' }} ⏭️
-            
-    #         *Total Tests: ${{ steps.prepare_stats.outputs.total || '0' }}*
-    #         *Allure Report:* https://ibmsandeep.github.io/playwright-bdd-typescripts/
-    #     env:
-    #       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_UNKNOWN }}
-        
