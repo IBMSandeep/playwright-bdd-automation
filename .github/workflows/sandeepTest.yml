@@ -1,10 +1,6 @@
 name: Playwright BDD In Sandeep Branch
 # Trigger workflow run - updated on user request
-
 on:
-#   push:
-#     branches: [ main ]
-#   pull_request:
 #     branches: [ main ]
   workflow_dispatch:
     inputs:
