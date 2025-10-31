@@ -12,18 +12,18 @@ on:
         description: 'Reason for running the workflow'
         required: false
         default: 'demoYmlFile test cases'
-      behave_tag_choice:
-        description: 'Tag to run specific tests'
-        required: false
-        type: choice
-        options:
-            - apiTestSmokeOne
-            - apiTestSmokeTwo
-            - inventory-backpack-details
-            - inventory-backpack-add-to-cart
-            - login-title
-            - login-valid
-            - login-invalid
+      # behave_tag_choice:
+      #   description: 'Tag to run specific tests'
+      #   required: false
+      #   type: choice
+      #   options:
+      #       - apiTestSmokeOne
+      #       - apiTestSmokeTwo
+      #       - inventory-backpack-details
+      #       - inventory-backpack-add-to-cart
+      #       - login-title
+      #       - login-valid
+      #       - login-invalid
 
 jobs:
   test:
